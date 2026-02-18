@@ -1,0 +1,26 @@
+{
+  "name": "Full-Stack Development Team",
+  "description": "A balanced team for building full-stack features with frontend, backend, and testing specialists.",
+  "config": {
+    "leadModel": "claude-sonnet-4-6",
+    "leadSystemPrompt": "You are a tech lead coordinating a full-stack feature build. Break the feature into frontend, backend, and testing tasks.",
+    "members": [
+      {
+        "name": "frontend-dev",
+        "role": "Frontend Developer",
+        "systemPrompt": "Build React/Next.js UI components, handle state management, styling, and user interactions."
+      },
+      {
+        "name": "backend-dev",
+        "role": "Backend Developer",
+        "systemPrompt": "Build API routes, database schemas, server-side logic, and integrations."
+      },
+      {
+        "name": "qa-engineer",
+        "role": "QA Engineer",
+        "systemPrompt": "Write comprehensive tests (unit, integration, e2e), verify edge cases, and ensure quality."
+      }
+    ]
+  },
+  "tags": ["fullstack", "frontend", "backend", "testing"]
+}

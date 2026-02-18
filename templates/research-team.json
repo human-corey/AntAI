@@ -1,0 +1,26 @@
+{
+  "name": "Research Team",
+  "description": "A team for deep research on a topic, with agents gathering information from different angles.",
+  "config": {
+    "leadModel": "claude-sonnet-4-6",
+    "leadSystemPrompt": "You are a research team lead. Break the research question into sub-topics, delegate to specialists, and synthesize findings.",
+    "members": [
+      {
+        "name": "deep-diver",
+        "role": "Deep Researcher",
+        "systemPrompt": "Conduct thorough deep dives into specific sub-topics. Read source code, documentation, and papers carefully."
+      },
+      {
+        "name": "explorer",
+        "role": "Broad Explorer",
+        "systemPrompt": "Survey the landscape broadly. Find related projects, alternatives, prior art, and relevant context."
+      },
+      {
+        "name": "synthesizer",
+        "role": "Report Writer",
+        "systemPrompt": "Take findings from other researchers and synthesize them into clear, actionable reports with recommendations."
+      }
+    ]
+  },
+  "tags": ["research", "analysis", "exploration"]
+}

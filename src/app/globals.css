@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "../styles/animations.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Light mode - AntAI Mycelium palette */
+  --background: #f5f3ef;
+  --foreground: #1a1a17;
+  --card: #faf9f7;
+  --card-foreground: #1a1a17;
+  --popover: #faf9f7;
+  --popover-foreground: #1a1a17;
+  --primary: #d4a853;
+  --primary-foreground: #1a1a17;
+  --secondary: #2d6a4f;
+  --secondary-foreground: #f5f3ef;
+  --accent: #f7b32b;
+  --accent-foreground: #1a1a17;
+  --muted: #e8e5dd;
+  --muted-foreground: #6b6b5f;
+  --destructive: #dc6b2f;
+  --destructive-foreground: #f5f3ef;
+  --border: #d9d5cc;
+  --input: #d9d5cc;
+  --ring: #d4a853;
+  --radius: 0.625rem;
+
+  /* AntAI-specific tokens */
+  --edge-idle: #a09882;
+  --edge-active: #d4a853;
+  --glow: rgba(247, 179, 43, 0.25);
+  --node-bg: #faf9f7;
+  --node-border: #d9d5cc;
+  --status-running: #2d6a4f;
+  --status-thinking: #d4a853;
+  --status-tool-use: #4a7eb5;
+  --status-error: #dc6b2f;
+  --status-idle: #8a8a7a;
+  --status-stopped: #6b6b5f;
+}
+
+.dark {
+  --background: #121210;
+  --foreground: #e8e5dd;
+  --card: #1a1a17;
+  --card-foreground: #e8e5dd;
+  --popover: #1a1a17;
+  --popover-foreground: #e8e5dd;
+  --primary: #d4a853;
+  --primary-foreground: #121210;
+  --secondary: #2d6a4f;
+  --secondary-foreground: #e8e5dd;
+  --accent: #f7b32b;
+  --accent-foreground: #121210;
+  --muted: #2a2a25;
+  --muted-foreground: #8a8a7a;
+  --destructive: #dc6b2f;
+  --destructive-foreground: #e8e5dd;
+  --border: #2a2a25;
+  --input: #2a2a25;
+  --ring: #d4a853;
+
+  --edge-idle: #6b6050;
+  --edge-active: #d4a853;
+  --glow: rgba(247, 179, 43, 0.25);
+  --node-bg: #1a1a17;
+  --node-border: #2a2a25;
+  --status-running: #3d8b6a;
+  --status-thinking: #d4a853;
+  --status-tool-use: #5a8ec5;
+  --status-error: #dc6b2f;
+  --status-idle: #6b6050;
+  --status-stopped: #3a3a35;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
+/* React Flow overrides */
+.react-flow__background {
+  background: var(--background) !important;
+}
+
+.react-flow__minimap {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--muted) !important;
+}

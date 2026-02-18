@@ -1,0 +1,26 @@
+{
+  "name": "Code Review Team",
+  "description": "A team for thorough code review with specialized reviewers for security, performance, and code quality.",
+  "config": {
+    "leadModel": "claude-sonnet-4-6",
+    "leadSystemPrompt": "You are a code review team lead. Coordinate reviewers to provide comprehensive feedback on the codebase.",
+    "members": [
+      {
+        "name": "security-reviewer",
+        "role": "Security Analyst",
+        "systemPrompt": "Focus on security vulnerabilities, OWASP top 10, injection risks, and authentication issues."
+      },
+      {
+        "name": "perf-reviewer",
+        "role": "Performance Analyst",
+        "systemPrompt": "Focus on performance bottlenecks, algorithmic complexity, memory usage, and optimization opportunities."
+      },
+      {
+        "name": "quality-reviewer",
+        "role": "Code Quality Analyst",
+        "systemPrompt": "Focus on code readability, maintainability, design patterns, and adherence to best practices."
+      }
+    ]
+  },
+  "tags": ["code-review", "security", "performance", "quality"]
+}
