@@ -12,6 +12,9 @@ export const queryKeys = {
     all: (projectId: string, teamId: string) =>
       ["projects", projectId, "teams", teamId, "agents"] as const,
     detail: (agentId: string) => ["agents", agentId] as const,
+    byProject: (projectId: string) => ["projects", projectId, "agents"] as const,
+    messages: (projectId: string, agentId: string) =>
+      ["projects", projectId, "agents", agentId, "messages"] as const,
   },
   tasks: {
     all: (projectId: string) => ["projects", projectId, "tasks"] as const,

@@ -5,6 +5,8 @@ import { setupWebSocketServer } from "../src/lib/ws/server";
 import { ProcessManager } from "../src/lib/claude/process-manager";
 import { ClaudeFileWatcher } from "../src/lib/claude/file-watcher";
 import { DEFAULT_PORT, APP_NAME, APP_VERSION } from "../src/lib/constants";
+import { initServerContext } from "../src/lib/server-context";
+import { serverLog } from "../src/lib/logger";
 
 const dev = process.env.NODE_ENV !== "production";
 const port = parseInt(process.env.PORT || String(DEFAULT_PORT), 10);
@@ -16,11 +18,9 @@ const handle = app.getRequestHandler();
 const processManager = new ProcessManager();
 const fileWatcher = new ClaudeFileWatcher();
 
-// Make processManager available globally for API routes
-(globalThis as Record<string, unknown>).__antai_process_manager = processManager;
-
 async function main() {
   await app.prepare();
+  serverLog.info("Next.js prepared", { mode: dev ? "development" : "production" });
 
   const server = createServer((req, res) => {
     const parsedUrl = parse(req.url || "/", true);
@@ -30,24 +30,24 @@ async function main() {
   // Set up WebSocket
   const { rooms } = setupWebSocketServer(server, processManager);
   processManager.setRooms(rooms);
-
-  // Make rooms available globally too
-  (globalThis as Record<string, unknown>).__antai_rooms = rooms;
+  initServerContext({ processManager, roomManager: rooms, fileWatcher });
 
   server.listen(port, () => {
+    serverLog.info(`${APP_NAME} v${APP_VERSION} ready`, { port, ws: `ws://localhost:${port}/ws` });
     console.log(`\n  ${APP_NAME} v${APP_VERSION}`);
     console.log(`  Ready on http://localhost:${port}`);
     console.log(`  WebSocket on ws://localhost:${port}/ws`);
+    console.log(`  Logs: data/antai.log`);
     console.log(`  Mode: ${dev ? "development" : "production"}\n`);
   });
 
   // Graceful shutdown
   const shutdown = async (signal: string) => {
-    console.log(`\n[${signal}] Shutting down...`);
+    serverLog.info("Shutting down", { signal });
     fileWatcher.close();
     await processManager.shutdownAll();
     server.close(() => {
-      console.log("Server closed");
+      serverLog.info("Server closed");
       process.exit(0);
     });
     // Force exit after 15 seconds
@@ -59,6 +59,7 @@ async function main() {
 }
 
 main().catch((err) => {
+  serverLog.error("Failed to start server", { error: err.message });
   console.error("Failed to start server:", err);
   process.exit(1);
 });

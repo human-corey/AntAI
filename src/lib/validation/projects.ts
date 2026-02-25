@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createProjectSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   description: z.string().max(500).default(""),
-  workingDir: z.string().min(1, "Working directory is required"),
+  workingDir: z.string().optional(),
 });
 
 export const updateProjectSchema = z.object({

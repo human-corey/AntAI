@@ -4,6 +4,7 @@ import { RoomManager } from "./rooms";
 import { handleClientMessage } from "./handlers";
 import type { ProcessManager } from "@/lib/claude/process-manager";
 import { WS_PATH, WS_PING_INTERVAL } from "@/lib/constants";
+import { wsLog } from "@/lib/logger";
 
 export function setupWebSocketServer(
   httpServer: Server,
@@ -30,6 +31,7 @@ export function setupWebSocketServer(
   }, WS_PING_INTERVAL);
 
   wss.on("connection", (ws: WebSocket) => {
+    wsLog.info("Client connected", { clients: wss.clients.size });
     (ws as WebSocket & { isAlive?: boolean }).isAlive = true;
 
     ws.on("pong", () => {
@@ -42,10 +44,12 @@ export function setupWebSocketServer(
     });
 
     ws.on("close", () => {
+      wsLog.info("Client disconnected", { clients: wss.clients.size - 1 });
       rooms.removeClient(ws);
     });
 
-    ws.on("error", () => {
+    ws.on("error", (err) => {
+      wsLog.error("Client error", { error: err.message });
       rooms.removeClient(ws);
     });
   });
@@ -54,7 +58,7 @@ export function setupWebSocketServer(
     clearInterval(pingInterval);
   });
 
-  console.log(`[WS] WebSocket server ready on ${WS_PATH}`);
+  wsLog.info(`WebSocket server ready on ${WS_PATH}`);
 
   return { wss, rooms };
 }

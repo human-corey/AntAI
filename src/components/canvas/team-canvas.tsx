@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ReactFlow,
   Background,
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type Node,
   type Edge,
   BackgroundVariant,
@@ -24,18 +25,51 @@ const nodeTypes = { agent: AgentNode };
 const edgeTypes = { tunnel: TunnelEdge };
 
 interface TeamCanvasProps {
-  initialNodes?: Node[];
-  initialEdges?: Edge[];
+  projectId: string;
+  nodes: Node[];
+  edges: Edge[];
+  shouldRelayout: boolean;
 }
 
-function TeamCanvasInner({ initialNodes = [], initialEdges = [] }: TeamCanvasProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+function TeamCanvasInner({ projectId, nodes: derivedNodes, edges: derivedEdges, shouldRelayout }: TeamCanvasProps) {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { getLayoutedElements } = useAutoLayout();
+  const { fitView } = useReactFlow();
   const { showMinimap, setShowMinimap, setNodes: syncNodesToStore } = useCanvasStore();
   const { openDrawer } = useUiStore();
+  const prevNodeIdsRef = useRef("");
 
-  // Sync nodes to Zustand store so other components (like AgentDrawer) can access them
+  // Sync derived data into React Flow state
+  useEffect(() => {
+    const currentIds = derivedNodes.map((n) => n.id).sort().join(",");
+    const prevIds = prevNodeIdsRef.current;
+
+    if (currentIds !== prevIds) {
+      // Structural change: new agent added or removed — relayout
+      const { nodes: layouted, edges: layoutedEdges } = getLayoutedElements(derivedNodes, derivedEdges);
+      setNodes(layouted);
+      setEdges(layoutedEdges);
+      prevNodeIdsRef.current = currentIds;
+
+      // Fit view after layout settles
+      setTimeout(() => fitView({ padding: 0.2 }), 50);
+    } else {
+      // Data-only change: merge new data into existing nodes, preserve positions
+      setNodes((prev) =>
+        prev.map((node) => {
+          const updated = derivedNodes.find((n) => n.id === node.id);
+          if (updated) {
+            return { ...node, data: updated.data };
+          }
+          return node;
+        })
+      );
+      setEdges(derivedEdges);
+    }
+  }, [derivedNodes, derivedEdges, getLayoutedElements, setNodes, setEdges, fitView]);
+
+  // Sync nodes to Zustand store for AgentDrawer access
   useEffect(() => {
     syncNodesToStore(nodes);
   }, [nodes, syncNodesToStore]);
@@ -44,7 +78,8 @@ function TeamCanvasInner({ initialNodes = [], initialEdges = [] }: TeamCanvasPro
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
-  }, [nodes, edges, getLayoutedElements, setNodes, setEdges]);
+    setTimeout(() => fitView({ padding: 0.2 }), 50);
+  }, [nodes, edges, getLayoutedElements, setNodes, setEdges, fitView]);
 
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {

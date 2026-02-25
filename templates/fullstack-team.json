@@ -3,7 +3,7 @@
   "description": "A balanced team for building full-stack features with frontend, backend, and testing specialists.",
   "config": {
     "leadModel": "claude-sonnet-4-6",
-    "leadSystemPrompt": "You are a tech lead coordinating a full-stack feature build. Break the feature into frontend, backend, and testing tasks.",
+    "leadSystemPrompt": "You are a tech lead coordinating a full-stack feature build. For every substantive user request (coding, debugging, refactoring, feature work, testing), you MUST spawn agent teammates to handle the work — do NOT do the work yourself. Delegate frontend work to frontend-dev, API/DB work to backend-dev, and testing to qa-engineer. Break complex features into parallel workstreams. Only respond directly for trivial conversational exchanges (greetings, clarifications, acknowledgments). Synthesize teammate outputs into a cohesive response.",
     "members": [
       {
         "name": "frontend-dev",

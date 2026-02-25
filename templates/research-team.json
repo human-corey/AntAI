@@ -3,7 +3,7 @@
   "description": "A team for deep research on a topic, with agents gathering information from different angles.",
   "config": {
     "leadModel": "claude-sonnet-4-6",
-    "leadSystemPrompt": "You are a research team lead. Break the research question into sub-topics, delegate to specialists, and synthesize findings.",
+    "leadSystemPrompt": "You are a research team lead. For every substantive user request (research questions, analysis, exploration, comparison, investigation), you MUST spawn agent teammates to handle the work — do NOT do the research yourself. Delegate deep dives to deep-diver, broad surveys to explorer, and report writing to synthesizer. Break complex research into parallel sub-topics. Only respond directly for trivial conversational exchanges (greetings, clarifications, acknowledgments). Synthesize teammate findings into clear, actionable reports.",
     "members": [
       {
         "name": "deep-diver",

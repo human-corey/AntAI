@@ -1,84 +1,48 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { TeamCanvas } from "@/components/canvas/team-canvas";
-import type { Node, Edge } from "@xyflow/react";
-
-// Demo nodes for development — will be replaced with real data from API
-const demoNodes: Node[] = [
-  {
-    id: "lead-1",
-    type: "agent",
-    position: { x: 250, y: 0 },
-    data: {
-      agent: {
-        id: "lead-1",
-        teamId: "team-1",
-        name: "Team Lead",
-        role: "lead",
-        model: "claude-sonnet-4-6",
-        status: "running",
-        isLead: true,
-        currentTask: "Coordinating code review",
-        lastOutput: "Analyzing project structure...",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      isSelected: false,
-      isCompact: false,
-      tasks: [],
-    },
-  },
-  {
-    id: "agent-1",
-    type: "agent",
-    position: { x: 50, y: 200 },
-    data: {
-      agent: {
-        id: "agent-1",
-        teamId: "team-1",
-        name: "Security Reviewer",
-        role: "Security Analyst",
-        model: "claude-sonnet-4-6",
-        status: "thinking",
-        isLead: false,
-        currentTask: "Checking for XSS vulnerabilities",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      isSelected: false,
-      isCompact: false,
-      tasks: [],
-    },
-  },
-  {
-    id: "agent-2",
-    type: "agent",
-    position: { x: 450, y: 200 },
-    data: {
-      agent: {
-        id: "agent-2",
-        teamId: "team-1",
-        name: "Perf Reviewer",
-        role: "Performance Analyst",
-        model: "claude-sonnet-4-6",
-        status: "tool_use",
-        isLead: false,
-        currentTask: "Running benchmarks",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      isSelected: false,
-      isCompact: false,
-      tasks: [],
-    },
-  },
-];
-
-const demoEdges: Edge[] = [
-  { id: "e-lead-agent1", source: "lead-1", target: "agent-1", type: "tunnel", data: { isActive: true } },
-  { id: "e-lead-agent2", source: "lead-1", target: "agent-2", type: "tunnel", data: { isActive: false } },
-];
+import { StartTeamDialog } from "@/components/canvas/start-team-dialog";
+import { useCanvasAgents } from "@/hooks/use-canvas-agents";
+import { useCanvasSubscriptions } from "@/hooks/use-canvas-subscriptions";
+import { Loader2, Users } from "lucide-react";
 
 export default function CanvasPage() {
-  return <TeamCanvas initialNodes={demoNodes} initialEdges={demoEdges} />;
+  const params = useParams();
+  const projectId = params.projectId as string;
+
+  useCanvasSubscriptions(projectId);
+  const { nodes, edges, isLoading, isEmpty, shouldRelayout } = useCanvasAgents(projectId);
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--muted-foreground)]" />
+      </div>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 text-[var(--muted-foreground)]">
+        <Users className="h-12 w-12" />
+        <p className="text-sm">Start a team to see agents here</p>
+        <StartTeamDialog projectId={projectId} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full relative">
+      <div className="absolute top-3 right-3 z-10">
+        <StartTeamDialog projectId={projectId} />
+      </div>
+      <TeamCanvas
+        projectId={projectId}
+        nodes={nodes}
+        edges={edges}
+        shouldRelayout={shouldRelayout}
+      />
+    </div>
+  );
 }

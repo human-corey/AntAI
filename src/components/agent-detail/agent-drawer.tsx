@@ -1,32 +1,27 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AgentHeader } from "./agent-header";
 import { AgentLogs } from "./agent-logs";
+import { AgentTerminal } from "./agent-terminal";
+import { useKillAgent, useResumeAgent } from "@/lib/api/hooks";
+import { useParams } from "next/navigation";
 
-const AgentTerminal = dynamic(
-  () => import("./agent-terminal").then((m) => m.AgentTerminal),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full bg-[#121210]" />
-    ),
-  }
-);
 import { AgentTasks } from "./agent-tasks";
 import { AgentChat } from "./agent-chat";
 import { useUiStore } from "@/stores/ui-store";
 import { useAgentStore } from "@/stores/agent-store";
 import { useCanvasStore } from "@/stores/canvas-store";
-import { Terminal, ScrollText, ListTodo, MessageSquare } from "lucide-react";
+import { TerminalSquare, ListTodo, MessageSquare, FileText } from "lucide-react";
 import type { AgentNodeData } from "@/lib/types";
 
 export function AgentDrawer() {
   const { drawerOpen, drawerAgentId, closeDrawer } = useUiStore();
   const { agents } = useAgentStore();
   const { nodes } = useCanvasStore();
+  const params = useParams();
+  const projectId = params.projectId as string;
 
   const agent = drawerAgentId ? agents[drawerAgentId] : null;
 
@@ -59,6 +54,17 @@ export function AgentDrawer() {
 
   const displayAgent = agent || canvasAgent || placeholderAgent;
 
+  const killAgent = useKillAgent(
+    projectId || "",
+    displayAgent?.teamId || "",
+    displayAgent?.id || ""
+  );
+  const resumeAgent = useResumeAgent(
+    projectId || "",
+    displayAgent?.teamId || "",
+    displayAgent?.id || ""
+  );
+
   return (
     <Sheet open={drawerOpen} onOpenChange={(open) => !open && closeDrawer()}>
       <SheetContent
@@ -71,16 +77,21 @@ export function AgentDrawer() {
         </SheetTitle>
         {displayAgent && (
           <>
-            <AgentHeader agent={displayAgent} onClose={closeDrawer} />
+            <AgentHeader
+              agent={displayAgent}
+              onStop={() => killAgent.mutate()}
+              onResume={() => resumeAgent.mutate()}
+              onClose={closeDrawer}
+            />
 
-            <Tabs defaultValue="terminal" className="flex-1 flex flex-col min-h-0">
+            <Tabs defaultValue="output" className="flex-1 flex flex-col min-h-0">
               <TabsList className="mx-4 mt-2 bg-[var(--muted)]">
-                <TabsTrigger value="terminal" className="gap-1.5 text-xs">
-                  <Terminal className="h-3 w-3" />
+                <TabsTrigger value="output" className="gap-1.5 text-xs">
+                  <TerminalSquare className="h-3 w-3" />
                   Terminal
                 </TabsTrigger>
                 <TabsTrigger value="logs" className="gap-1.5 text-xs">
-                  <ScrollText className="h-3 w-3" />
+                  <FileText className="h-3 w-3" />
                   Logs
                 </TabsTrigger>
                 <TabsTrigger value="tasks" className="gap-1.5 text-xs">
@@ -93,17 +104,21 @@ export function AgentDrawer() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="terminal" className="flex-1 min-h-0 m-0 mt-2">
-                <AgentTerminal agentId={displayAgent.id} />
+              <TabsContent value="output" className="flex-1 flex flex-col min-h-0 overflow-hidden m-0 mt-2">
+                <AgentTerminal agentId={displayAgent.id} teamId={displayAgent.teamId} isLead={displayAgent.isLead} />
               </TabsContent>
-              <TabsContent value="logs" className="flex-1 min-h-0 m-0">
+              <TabsContent value="logs" className="flex-1 flex flex-col min-h-0 overflow-hidden m-0">
                 <AgentLogs agentId={displayAgent.id} />
               </TabsContent>
-              <TabsContent value="tasks" className="flex-1 min-h-0 m-0">
+              <TabsContent value="tasks" className="flex-1 flex flex-col min-h-0 overflow-hidden m-0">
                 <AgentTasks agentId={displayAgent.id} />
               </TabsContent>
-              <TabsContent value="chat" className="flex-1 min-h-0 m-0">
-                <AgentChat agentId={displayAgent.id} />
+              <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 overflow-hidden m-0">
+                <AgentChat
+                  agentId={displayAgent.id}
+                  teamId={displayAgent.teamId}
+                  projectId={projectId}
+                />
               </TabsContent>
             </Tabs>
           </>

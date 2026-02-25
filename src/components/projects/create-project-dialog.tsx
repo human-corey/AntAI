@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCreateProject } from "@/lib/api/hooks";
-import { Plus } from "lucide-react";
+import { Plus, FolderOpen } from "lucide-react";
 
 interface CreateProjectDialogProps {
   trigger?: React.ReactNode;
@@ -23,21 +23,25 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [workingDir, setWorkingDir] = useState(".");
   const createProject = useCreateProject();
+
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     createProject.mutate(
-      { name: name.trim(), description: description.trim(), workingDir: workingDir.trim() },
+      { name: name.trim(), description: description.trim(), workingDir: "" },
       {
         onSuccess: () => {
           setOpen(false);
           setName("");
           setDescription("");
-          setWorkingDir(".");
         },
       }
     );
@@ -62,7 +66,7 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
-              Set up a new project to organize your agent teams.
+              A dedicated directory will be created for this project where teams can store artifacts and code.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -83,18 +87,12 @@ export function CreateProjectDialog({ trigger }: CreateProjectDialogProps) {
                 placeholder="Optional description..."
               />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">Working Directory</label>
-              <Input
-                value={workingDir}
-                onChange={(e) => setWorkingDir(e.target.value)}
-                placeholder="/path/to/project"
-                required
-              />
-              <p className="text-[10px] text-[var(--muted-foreground)] mt-1">
-                The directory where Claude CLI will run
-              </p>
-            </div>
+            {slug && (
+              <div className="flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+                <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate font-mono">data/projects/{slug}/</span>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

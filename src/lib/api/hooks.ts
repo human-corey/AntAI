@@ -8,6 +8,7 @@ import type {
   Template,
   AppSettings,
 } from "@/lib/types";
+import type { TranscriptEntry } from "@/lib/claude/types";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -38,7 +39,7 @@ export function useProject(id: string) {
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; workingDir: string }) =>
+    mutationFn: (data: { name: string; description?: string; workingDir?: string }) =>
       fetchJson<Project>("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,6 +144,80 @@ export function useAgents(projectId: string, teamId: string) {
         `/api/projects/${projectId}/teams/${teamId}/agents`
       ),
     enabled: !!projectId && !!teamId,
+  });
+}
+
+export function useProjectAgents(projectId: string) {
+  return useQuery({
+    queryKey: queryKeys.agents.byProject(projectId),
+    queryFn: () => fetchJson<Agent[]>(`/api/projects/${projectId}/agents`),
+    enabled: !!projectId,
+  });
+}
+
+export function useAgentMessages(projectId: string, agentId: string) {
+  return useQuery({
+    queryKey: queryKeys.agents.messages(projectId, agentId),
+    queryFn: () =>
+      fetchJson<TranscriptEntry[]>(
+        `/api/projects/${projectId}/agents/${agentId}/messages`
+      ),
+    enabled: !!projectId && !!agentId,
+    staleTime: Infinity, // Only fetch once; WS handles live updates
+  });
+}
+
+export function useReconcileAgents(projectId: string) {
+  return useMutation({
+    mutationFn: () =>
+      fetchJson<{ reconciled: string[] }>(
+        `/api/projects/${projectId}/agents/reconcile`,
+        { method: "POST" }
+      ),
+  });
+}
+
+export function useKillAgent(projectId: string, teamId: string, agentId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetchJson(`/api/projects/${projectId}/teams/${teamId}/agents/${agentId}/kill`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.agents.all(projectId, teamId) });
+      qc.invalidateQueries({ queryKey: queryKeys.agents.byProject(projectId) });
+    },
+  });
+}
+
+export function useResumeAgent(projectId: string, teamId: string, agentId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetchJson(`/api/projects/${projectId}/teams/${teamId}/agents/${agentId}/resume`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.agents.all(projectId, teamId) });
+      qc.invalidateQueries({ queryKey: queryKeys.agents.byProject(projectId) });
+    },
+  });
+}
+
+export function useSendMessage(projectId: string, teamId: string, agentId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (message: string) =>
+      fetchJson(`/api/projects/${projectId}/teams/${teamId}/agents/${agentId}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.agents.all(projectId, teamId) });
+      qc.invalidateQueries({ queryKey: queryKeys.agents.byProject(projectId) });
+    },
   });
 }
 

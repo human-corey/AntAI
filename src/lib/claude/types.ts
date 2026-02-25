@@ -1,9 +1,9 @@
-import type { ChildProcess } from "child_process";
+import type { IPty } from "node-pty";
 
 export interface ManagedProcess {
   agentId: string;
   teamId: string;
-  process: ChildProcess;
+  process: IPty;
   pid: number;
   isLead: boolean;
   startedAt: string;
@@ -30,4 +30,35 @@ export type OutputEvent =
   | { type: "agent_spawned"; name: string; role?: string }
   | { type: "message"; content: string }
   | { type: "error"; message: string }
-  | { type: "thinking"; content: string };
+  | { type: "thinking"; content: string }
+  | { type: "result"; sessionId: string; costUsd?: number; numTurns?: number; isError?: boolean; resultText?: string }
+  | { type: "message_delta"; blockId: string; content: string; isFinal: boolean }
+  | { type: "thinking_delta"; blockId: string; content: string; isFinal: boolean };
+
+export type TranscriptEntryType =
+  | "message"
+  | "user_message"
+  | "tool_use"
+  | "tool_result"
+  | "thinking"
+  | "error"
+  | "result"
+  | "status_change"
+  | "agent_spawned";
+
+export interface TranscriptEntry {
+  id: string;
+  timestamp: string;
+  type: TranscriptEntryType;
+  content?: string;
+  tool?: string;
+  toolInput?: string;
+  toolResult?: string;
+  sessionId?: string;
+  costUsd?: number;
+  numTurns?: number;
+  isError?: boolean;
+  isStreaming?: boolean;
+  status?: string;
+  agentName?: string;
+}

@@ -1,5 +1,6 @@
 import type WebSocket from "ws";
 import { serializeServerMessage, type ServerMessage } from "./protocol";
+import { wsLog } from "@/lib/logger";
 
 type RoomKey = string; // e.g. "project:proj_abc", "terminal:agent_xyz"
 
@@ -48,8 +49,15 @@ export class RoomManager {
   broadcast(channel: string, id: string, message: ServerMessage): void {
     const key = `${channel}:${id}`;
     const clients = this.rooms.get(key);
-    if (!clients) return;
+    if (!clients || clients.size === 0) {
+      // Only log non-terminal broadcasts with no subscribers (terminal is too noisy)
+      if (channel !== "terminal" && message.type !== "terminal:output") {
+        wsLog.debug("Broadcast: no subscribers", { channel, id, type: message.type });
+      }
+      return;
+    }
 
+    wsLog.debug("Broadcast", { channel, id, type: message.type, clients: clients.size });
     const data = serializeServerMessage(message);
     for (const ws of clients) {
       if (ws.readyState === ws.OPEN) {

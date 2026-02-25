@@ -4,6 +4,9 @@ import { schema } from "@/lib/db";
 import { createProjectId } from "@/lib/utils/id";
 import { createProjectSchema } from "@/lib/validation/projects";
 import { desc } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
+import { PROJECTS_BASE_DIR } from "@/lib/constants";
 
 export async function GET() {
   const projects = db
@@ -12,6 +15,14 @@ export async function GET() {
     .orderBy(desc(schema.projects.updatedAt))
     .all();
   return NextResponse.json(projects);
+}
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
 }
 
 export async function POST(req: NextRequest) {
@@ -24,12 +35,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const id = createProjectId();
   const now = new Date().toISOString();
+
+  // Auto-create project directory if no workingDir provided
+  let workingDir = parsed.data.workingDir?.trim();
+  if (!workingDir) {
+    const slug = slugify(parsed.data.name) || id;
+    const projectDir = path.resolve(process.cwd(), PROJECTS_BASE_DIR, slug);
+    fs.mkdirSync(projectDir, { recursive: true });
+    workingDir = projectDir;
+  }
+
   const project = {
-    id: createProjectId(),
+    id,
     name: parsed.data.name,
     description: parsed.data.description,
-    workingDir: parsed.data.workingDir,
+    workingDir,
     status: "active" as const,
     createdAt: now,
     updatedAt: now,

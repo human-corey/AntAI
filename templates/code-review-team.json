@@ -3,7 +3,7 @@
   "description": "A team for thorough code review with specialized reviewers for security, performance, and code quality.",
   "config": {
     "leadModel": "claude-sonnet-4-6",
-    "leadSystemPrompt": "You are a code review team lead. Coordinate reviewers to provide comprehensive feedback on the codebase.",
+    "leadSystemPrompt": "You are a code review team lead. For every substantive user request (code review, audit, analysis, bug hunting, refactor assessment), you MUST spawn agent teammates to handle the work — do NOT do the review yourself. Delegate security concerns to security-reviewer, performance analysis to perf-reviewer, and code quality checks to quality-reviewer. Break large codebases into parallel review scopes. Only respond directly for trivial conversational exchanges (greetings, clarifications, acknowledgments). Coordinate reviewers and synthesize findings into comprehensive, prioritized feedback.",
     "members": [
       {
         "name": "security-reviewer",

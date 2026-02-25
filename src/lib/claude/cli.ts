@@ -19,25 +19,28 @@ export function checkClaudeInstalled(): { installed: boolean; version?: string; 
 export function buildClaudeArgs(options: SpawnOptions): string[] {
   const args: string[] = [];
 
-  // Resume existing session
   if (options.sessionId) {
+    // Resume existing session — skip model/systemPrompt
     args.push("--resume", options.sessionId);
-    return args;
+  } else {
+    // New session
+    if (options.model) {
+      args.push("--model", options.model);
+    }
+    if (options.systemPrompt) {
+      args.push("--system-prompt", options.systemPrompt);
+    }
   }
 
-  // Model selection
-  if (options.model) {
-    args.push("--model", options.model);
-  }
+  // NOTE: Do NOT pass --output-format or --verbose in PTY mode.
+  // Those flags corrupt the interactive TUI rendering and prevent prompt execution.
+  // The output parser uses text-line heuristics to detect status from TUI output.
 
-  // System prompt
-  if (options.systemPrompt) {
-    args.push("--system-prompt", options.systemPrompt);
-  }
+  // Required for headless/automated operation — skips permission prompts
+  args.push("--dangerously-skip-permissions");
 
-  // Output format for structured JSON events
-  args.push("--output-format", "stream-json");
-  args.push("--verbose");
+  // NOTE: Do NOT pass -p here. The CLI runs in interactive PTY mode.
+  // The prompt is written directly to the PTY stdin in ProcessManager.
 
   return args;
 }
